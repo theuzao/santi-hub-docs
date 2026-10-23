@@ -14,11 +14,11 @@ Este repositório público apresenta o santi.hub por meio de **capturas e docume
 
 ## Telas do produto
 
-**Abertura do site.** Captura da animação de loading publicada em 23/10/2026.
+Antes de mostrar os jogos, o site apresenta a marca Santi Estúdio na abertura. A tela seguinte mostra quais experiências o visitante pode conhecer.
 
 <a href="https://santiestudio.com.br"><img src="docs/imagens/loading-branco-2026-10-23.png" alt="Tela de loading do site com a marca SANTI ESTÚDIO em branco" width="780"></a>
 
-**Catálogo de jogos.** A página mostra Corrida como disponível e identifica os outros jogos como próximos lançamentos.
+A Corrida tem uma demonstração disponível. Cabo de Guerra e Pescaria aparecem como próximos lançamentos. A seção separa o que já pode ser visto do que está planejado, antes de apresentar os planos.
 
 <a href="https://santiestudio.com.br/#jogos"><img src="docs/imagens/jogos-2026-10-23.png" alt="Seção de jogos do site com Corrida disponível e outros jogos em breve" width="780"></a>
 
