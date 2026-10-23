@@ -90,6 +90,25 @@ flowchart TB
 
 O servidor aplica as regras e envia a ação ao minijogo ativo. Quando a rodada termina, o navegador devolve o resultado e o servidor atualiza o placar geral.
 
+### Do chat à partida
+
+O público participa escrevendo o nome de um time. O servidor identifica esse nome no comentário e decide se ele deve chegar ao jogo:
+
+```mermaid
+flowchart TB
+  Comentario["Pessoa comenta na live"] --> Conector["Conector recebe usuário e texto"]
+  Conector --> Nome{"Comentário cita um time?"}
+  Nome -->|não| Conversa["Continua como conversa no chat"]
+  Nome -->|sim| Limite{"Passou 1 s desde o último comentário aceito?"}
+  Limite -->|não| Repeticao["Repetição rápida é ignorada"]
+  Limite -->|sim| Time["Servidor registra ou mantém o time escolhido"]
+  Time --> WebSocket["Envia a ação por WebSocket"]
+  WebSocket --> Jogo["Jogo ativo reage e atualiza a rodada"]
+  Jogo --> Live["OBS ou LIVE Studio exibe a tela na live"]
+```
+
+Cada novo comentário válido gera uma ação, mesmo que a pessoa já pertença ao time. Curtidas e presentes seguem o último time que ela escolheu; antes dessa escolha, não afetam a partida. No simulador, os comentários percorrem as mesmas regras do servidor.
+
 ### Compra até a licença
 
 ```mermaid
