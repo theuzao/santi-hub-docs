@@ -16,7 +16,7 @@ Este repositório público apresenta o santi.hub por meio de **capturas e docume
 
 **Abertura do site.** Captura da animação de loading publicada em 23/10/2026.
 
-<a href="https://santiestudio.com.br"><img src="docs/imagens/loading-2026-10-23.png" alt="Tela de loading do site com a marca SANTI ESTÚDIO em branco" width="780"></a>
+<a href="https://santiestudio.com.br"><img src="docs/imagens/loading-branco-2026-10-23.png" alt="Tela de loading do site com a marca SANTI ESTÚDIO em branco" width="780"></a>
 
 **Catálogo de jogos.** A página mostra Corrida como disponível e identifica os outros jogos como próximos lançamentos.
 
