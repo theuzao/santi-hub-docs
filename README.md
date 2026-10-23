@@ -1,48 +1,49 @@
-# santi.hub — documentação de arquitetura
+# santi.hub — como o produto funciona
 
-Estudo de caso do santi.hub: um site de planos e licenças para jogos interativos de live, com um protótipo de servidor e tela de jogo em tempo real. Este repositório contém **somente documentação**. O código analisado permanece em repositórios privados.
+O **santi.hub** reúne uma página de planos, cobrança e licenças com jogos que o público controla durante uma live. Quem transmite coloca a tela do jogo no OBS ou LIVE Studio; quem assiste comenta o nome de um time, curte ou envia presentes; essas interações viram ações visíveis na partida.
 
-## Estado verificado
+O objetivo para quem transmite é transformar a audiência em participantes do jogo. Para quem assiste, a ação é simples: comentar o nome de um time já conta como jogada, e curtidas e presentes ajudam o último time escolhido. O narrador acompanha a rodada e pode avançar ou pausar o jogo.
 
-| Parte | Estado | Evidência |
-| --- | --- | --- |
-| Site, checkout, autenticação e API de licenças | Implementados no código; publicação informada pelo autor, sem verificação operacional neste estudo | `santi-hub` no commit `97ee1f200461bc575f524df66ef363cc9c9e2e8d` |
-| Servidor, simulador e tela dos jogos | Implementados; teste ponta a ponta com simulador descrito no repositório | `live-jogos` no commit `7e65efb42702b5918d499a85a58c9751de997948` |
-| Integração com live real | Não validada na documentação do projeto | `live-jogos/ARQUITETURA.md` |
-| Launcher Windows | Ainda não criado, conforme informado pelo autor | Contrato planejado em `santi-hub/docs/api-launcher.md` |
-| Ligação entre licença do site e execução dos jogos | Ainda não implementada de ponta a ponta | Launcher ausente; servidor de jogos não consulta a API de licenças |
+Durante a transmissão, o jogo alterna entre **Batata Quente, Domina o Mapa, Pescaria e Corrida**. Cada rodada mostra as ações do público na tela; ao terminar, o resultado alimenta um placar geral da live. O vídeo transmitido mostra essa tela, enquanto o servidor local recebe as interações e mantém os times e o placar.
 
-O conector atual dos jogos usa `tiktok-live-connector`, uma biblioteca **não oficial**. Essa limitação está descrita porque o uso de API oficial para conteúdo de usuários é um requisito do portfólio futuro; não há base para apresentar a coleta atual como aderente a ele.
+## Dois percursos do produto
 
-## Leitura em 60 segundos
+| Compra e acesso | Partida na live |
+| --- | --- |
+| Pessoa escolhe plano no site → Stripe recebe o pagamento → webhook confirmado grava uma licença no Postgres → API informa o acesso disponível. | Live ou simulador produz um evento → servidor Node.js interpreta a interação → WebSocket entrega a ação → jogo no navegador muda a tela → resultado da rodada volta ao servidor. |
 
-1. [Arquitetura](docs/arquitetura.md): limites dos componentes, caminho de um evento e falhas de conexão.
-2. [Modelo de dados](docs/modelo-de-dados.md): tabelas persistidas e estado da partida.
-3. [Fluxo de pagamento](docs/fluxo-pagamento.md): confirmação, idempotência, licença e falha do webhook.
-4. [Decisões arquiteturais](docs/adr/): escolhas presentes no código, alternativas e consequências.
+**Esses percursos ainda não se encontram na execução:** a API já emite um ticket de licença, mas o launcher Windows que o consumiria ainda não foi criado. O servidor dos jogos analisado não consulta a licença. O site está publicado segundo o autor; o jogo foi validado com simulador, e a documentação do código ainda não registra teste numa live real.
 
 ```mermaid
-flowchart LR
-  Pessoa[Cliente] --> Site[Site Next.js]
-  Site --> Stripe[Stripe Checkout]
-  Stripe -->|webhook| Site
-  Site --> Banco[(Postgres: clientes, licenças)]
-  Site -->|API e ticket: contrato| Launcher[Launcher ainda não criado]
-  Launcher -. integração pendente .-> Jogos[Servidor e tela dos jogos]
-  Live[Live TikTok] -->|conector não oficial; live real não validada| Jogos
+flowchart TB
+  A[Pessoa escolhe um plano] --> B[Site e Stripe]
+  B --> C[(Licença no Postgres)]
+  C -. ticket para launcher ainda não criado .-> D[Execução dos jogos]
+  E[Público interage na live] --> F[Servidor local dos jogos]
+  F -->|WebSocket| D
+  D --> G[Tela capturada pelo OBS]
 ```
+
+## O que está neste repositório
+
+Este é um **repositório público só de documentação**. O código analisado permanece nos repositórios privados `santi-hub` (site, cobrança, autenticação e API) e `live-jogos` (servidor, simulador e tela). A análise usa, respectivamente, os commits `97ee1f200461bc575f524df66ef363cc9c9e2e8d` e `7e65efb42702b5918d499a85a58c9751de997948`.
+
+- [Arquitetura](docs/arquitetura.md): visão do sistema, contêineres, exemplo de evento, estados e reconexão.
+- [Modelo de dados](docs/modelo-de-dados.md): tabelas do site e dados da partida fora do banco.
+- [Fluxo de pagamento](docs/fluxo-pagamento.md): confirmação, licença, falha e reenvio do webhook.
+- [Decisões arquiteturais](docs/adr/): cinco ADRs ligados ao que foi observado no código.
+
+## Estado e limites
+
+| Parte | Evidência disponível | Limite |
+| --- | --- | --- |
+| Site, checkout, autenticação e API de licenças | Implementados em `santi-hub`; publicação informada pelo autor | Operação de pagamento real não verificada neste estudo |
+| Servidor e tela dos jogos | Código e testes do simulador em `live-jogos` | Live real não validada na documentação do projeto |
+| Controle de acesso ao jogo | API emite ticket assinado | Launcher não criado; servidor dos jogos não verifica licença |
+| Coleta de eventos TikTok | Conector no código dos jogos | Usa `tiktok-live-connector`, biblioteca **não oficial** |
+
+O conector atual não atende ao requisito futuro do portfólio de coletar conteúdo de usuários apenas por API oficial. Não há métricas medidas de tráfego, receita, latência ou disponibilidade: **[A MEDIR]**.
 
 ## Como conferir
 
-Os documentos citam caminhos e commits dos dois repositórios privados usados na leitura. Não há comandos de execução neste repositório porque ele não contém o produto. Não há métricas de tráfego, latência, receita ou disponibilidade medidas; qualquer número de operação permanece **[A MEDIR]**.
-
-## Limites conhecidos
-
-- O simulador demonstra o fluxo dos jogos, mas não comprova operação numa live real.
-- Sem launcher, o ticket de licença e o servidor dos jogos ainda não formam uma liberação de acesso ponta a ponta.
-- O estado da rodada fica no navegador; uma recarga não restaura a rodada em curso.
-- O conector de TikTok atual não usa API oficial. Uma integração pública baseada em conteúdo de usuários depende de fonte oficial e dos respectivos termos de uso.
-
-## Licença
-
-Texto e diagramas sob [MIT](LICENSE). Nenhum código-fonte, segredo ou dado de cliente é distribuído aqui.
+Os documentos citam caminhos dos dois repositórios privados e os commits usados na leitura. Este repositório não contém código executável, credenciais ou dados de clientes. Texto e diagramas estão sob [MIT](LICENSE).

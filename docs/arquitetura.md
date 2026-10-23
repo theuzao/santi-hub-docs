@@ -1,68 +1,149 @@
 # Arquitetura do santi.hub
 
-**Escopo:** leitura dos commits `santi-hub@97ee1f200461bc575f524df66ef363cc9c9e2e8d` e `live-jogos@7e65efb42702b5918d499a85a58c9751de997948`. Os dois repositórios privados foram identificados pelo autor como partes do mesmo projeto. O launcher ainda não foi criado. Setas pontilhadas representam integração planejada ou não comprovada.
+O produto tem **um lado de conta e pagamento** e **um lado de jogo em tempo real**. O primeiro administra quem teria acesso; o segundo recebe interações da live e desenha a partida. O launcher que ligaria os dois lados ainda não foi criado. Os diagramas abaixo separam fluxo implementado de integração pendente.
 
-## C4 — nível 1: contexto
+**Fonte da leitura:** `santi-hub@97ee1f200461bc575f524df66ef363cc9c9e2e8d` e `live-jogos@7e65efb42702b5918d499a85a58c9751de997948`, repositórios privados que o autor identificou como partes do projeto. Linha contínua indica caminho presente no código; linha pontilhada indica ligação ainda sem implementação ponta a ponta.
+
+## 1. Quem interage com o sistema — C4 nível 1
+
+```mermaid
+flowchart TB
+  Streamer[Pessoa que transmite]
+  Publico[Público da live]
+  Santi[santi.hub: conta, cobrança e jogos]
+  TikTok[TikTok Live]
+  Stripe[Stripe]
+  Email[Serviço de e-mail]
+  OBS[OBS ou LIVE Studio]
+
+  Streamer -->|escolhe plano, entra na conta| Santi
+  Publico -->|comenta, curte, envia presentes| TikTok
+  TikTok -->|eventos da live: conector não oficial| Santi
+  Santi -->|abre checkout e consulta assinatura| Stripe
+  Stripe -->|confirma pagamento por webhook| Santi
+  Santi -->|envia código de entrada| Email
+  Santi -->|tela do jogo capturada| OBS
+  OBS -->|vídeo da transmissão| TikTok
+  TikTok -->|vídeo| Publico
+```
+
+A linha TikTok → santi.hub existe no conector, mas o repositório de jogos declara que ainda não foi testada numa live real. O site publicado foi informado pelo autor; este estudo não mediu operação em produção.
+
+## 2. Onde cada parte roda — C4 nível 2
+
+```mermaid
+flowchart TB
+  subgraph Web[Site e conta]
+    Site[Next.js: páginas e rotas de API]
+    DB[(Postgres: clientes, licenças, sessões)]
+    Site -->|SQL| DB
+  end
+
+  subgraph Local[Máquina que transmite]
+    Connector[Conector TikTok ou simulador]
+    Server[Node.js: regras, times e placar]
+    File[(dados/estado.json)]
+    Game[Phaser no navegador: rodada e desenho]
+    Connector -->|EventoLive| Server
+    Server -->|snapshot agendado| File
+    Server <-->|WebSocket JSON| Game
+  end
+
+  Stripe[Stripe] <-->|Checkout, consulta e webhook HTTPS| Site
+  Email[E-mail] <-->|código de entrada| Site
+  TikTok[TikTok Live] -->|biblioteca não oficial; sem validação em live real| Connector
+  Game -->|fonte de navegador| OBS[OBS ou LIVE Studio]
+  Site -. API e ticket assinado .-> Launcher[Launcher Windows: ainda não criado]
+  Launcher -. iniciaria os jogos após conferir o acesso .-> Server
+```
+
+Os vínculos pontilhados representam a integração prevista. A API do site emite um ticket que um launcher futuro consumiria; esse cliente iniciaria os jogos após verificar o acesso. Como o launcher não existe e o servidor de jogos não confere licença, os dois blocos devem ser explicados separadamente numa entrevista.
+
+## 3. Um comentário que vira jogada
+
+Exemplo concreto: uma pessoa comenta **“Rabino”**. O simulador permite percorrer o mesmo pipeline sem entrar numa live.
+
+```mermaid
+sequenceDiagram
+  autonumber
+  actor Pessoa as Pessoa no público
+  participant TikTok as Live TikTok ou simulador
+  participant Conector as Conector
+  participant Regras as Pipeline e placar
+  participant WS as Servidor WebSocket
+  participant Tela as Jogo no navegador
+  participant OBS as OBS
+
+  Pessoa->>TikTok: comenta "Rabino"
+  TikTok->>Conector: evento de comentário
+  Conector->>Regras: EventoLive {tipo, user, texto}
+  Regras->>Regras: interpreta time e aplica limite de 1 jogada por pessoa por segundo
+  Regras->>WS: Acao {tipo: entrarTime, time: rabino, user}
+  WS->>Tela: JSON {t: acao, acao} por WebSocket
+  Tela->>Tela: rotacao entrega a ação ao minijogo ativo
+  Tela-->>OBS: quadro atualizado da fonte de navegador
+```
+
+**Arquivos que sustentam as setas:** `server/src/conector/tiktok.ts` ou `simulador.ts` → `server/src/pipeline.ts` → `server/src/ws.ts` → `game/src/core/rede.ts` → `game/src/core/rotacao.ts` → cena do minijogo. O tipo comum de mensagem fica em `shared/protocolo.ts`.
+
+Curtidas são atribuídas ao último time comentado pela pessoa. Presentes também; quando ela ainda não escolheu time, o presente aparece como aviso e não age no jogo. Para presentes em combo, `ContadorCombo` calcula o aumento do `repeatCount` cumulativo antes de criar a ação. Dois presentes independentes recebidos no mesmo milissegundo são processados em sequência no processo Node.js: o limite de um segundo vale para **comentários que viram jogada**, não para presentes. O código não oferece ordenação global nem deduplicação durável de todas as entregas da live.
+
+## 4. O fechamento de uma rodada
+
+```mermaid
+sequenceDiagram
+  autonumber
+  participant Tela as Rotação e minijogo no navegador
+  participant WS as Servidor WebSocket
+  participant Placar as Placar no Node.js
+  participant Arquivo as estado.json
+
+  Tela->>Tela: timer termina ou jogo encerra antes
+  Tela->>WS: {t: resultado, pontuação por time}
+  WS->>Placar: valida formato e registra pontos
+  Placar->>Placar: agenda atualização para 300 ms depois
+  Placar->>Arquivo: grava estado geral
+  Placar-->>WS: snapshot do campeonato
+  WS-->>Tela: {t: placar, placar}
+  Tela->>Tela: transição e próximo minijogo
+```
+
+O servidor ignora um segundo resultado recebido em menos de 20 segundos. Essa janela tenta evitar dupla contagem quando OBS e aba de teste estão abertos, mas não identifica uma rodada por ID; pode ignorar uma segunda rodada legítima muito próxima ou aceitar duplicação tardia.
+
+## 5. Quem guarda cada estado
 
 ```mermaid
 flowchart LR
-  Cliente[Pessoa que transmite] -->|HTTPS: planos, login e conta| Hub[santi.hub]
-  Cliente -->|abre jogo em fonte de navegador| Hub
-  Publico[Público da live] -->|comentários, curtidas e presentes| TikTok[TikTok Live]
-  TikTok -->|biblioteca não oficial; live real não validada| Hub
-  Hub -->|cria sessão de checkout e consulta assinatura| Stripe[Stripe]
-  Stripe -->|webhook assinado| Hub
-  Hub -->|e-mail com código de login| Email[Serviço de e-mail]
+  Browser[Navegador: jogo ativo, timer, pontuação da rodada]
+  Server[Node.js: times, pontos gerais, ranking, combos e limite de comentários]
+  Disk[(estado.json: times, pontos gerais, ranking, número de rodadas)]
+  DB[(Postgres: clientes, licenças, login e eventos Stripe)]
+
+  Server -->|grava snapshot agendado| Disk
+  Server -->|envia placar ao conectar| Browser
+  Browser -->|envia resultado da rodada| Server
 ```
 
-O site de planos está publicado segundo o autor. A execução dos jogos numa live real e a ligação da licença à execução ainda não foram comprovadas. O diagrama representa o sistema pretendido e o caminho implementado no simulador, com esse limite explícito.
+| Onde | O que acontece numa queda |
+| --- | --- |
+| Navegador | O jogo segue seu cronômetro durante perda do WebSocket; recarregar a página reinicia a rodada. O resultado enviado offline é perdido. |
+| Processo Node.js | Times e placar geral são carregados de `estado.json` após reinício, se o arquivo estiver legível. Mapas de combos e limite de comentários não são restaurados. |
+| Arquivo local | A gravação é agendada para 300 ms após a primeira mudança pendente; uma queda antes da gravação pode perder mudanças. `ultimaRodada` não é gravada. |
+| Postgres | Mantém conta, licença, sessões, códigos de login e webhooks Stripe; não guarda ações ou rodadas dos jogos. |
 
-## C4 — nível 2: contêineres
+## 6. Quando uma conexão cai
 
 ```mermaid
-flowchart LR
-  Cliente[Pessoa que transmite] -->|HTTPS| Site[Site e API Next.js]
-  Site -->|SQL| Banco[(Postgres)]
-  Site -->|Checkout e consulta| Stripe[Stripe]
-  Stripe -->|HTTPS webhook| Site
-  Site -->|API HTTPS + ticket Ed25519; cliente pendente| Launcher[Launcher Windows ainda não criado]
-  Launcher -. inicialização futura .-> Servidor[Servidor local Node.js]
-  TikTok[TikTok Live] -->|tiktok-live-connector não oficial| Servidor
-  Sim[Simulador local] --> Servidor
-  Servidor -->|WebSocket JSON| Tela[Tela Phaser no navegador/OBS]
-  Tela -->|WebSocket: resultado da rodada| Servidor
-  Servidor -->|arquivo estado.json| Arquivo[(Estado local)]
+flowchart TB
+  QuedaLive[Conector perde a live] --> TentativaLive[Tenta reconectar: espera de 5 s até 60 s]
+  TentativaLive --> VoltaLive[Se voltar: recebe novos eventos]
+  QuedaWS[WebSocket entre servidor e tela cai] --> TelaSegue[Tela segue a rodada local]
+  TelaSegue --> TentativaWS[Cliente tenta reconectar após 2 s]
+  TentativaWS --> Snapshot[Servidor envia o placar geral atual]
 ```
 
-O site e a API contêm checkout, webhook, autenticação por código, sessões e emissão de ticket. O contrato da API do launcher existe em `santi-hub/docs/api-launcher.md`, mas seu cliente Windows não existe. O servidor dos jogos e a tela são outra aplicação; o código analisado não mostra verificação de licença pelo servidor de jogos.
+Não existe fila durável nem reenvio de ações perdidas. O simulador permanece disponível se a conexão com TikTok cair. Reconectar o WebSocket recupera o placar geral, mas não reconstrói a rodada da tela.
 
-## Caminho de um evento até a tela
+## Evidência e pendências
 
-1. `server/src/conector/tiktok.ts` recebe eventos `CHAT`, `GIFT` e `LIKE` por `tiktok-live-connector`. Esse conector **não é API oficial** e não consta teste numa live real. O simulador em `server/src/conector/simulador.ts` produz o mesmo `EventoLive` para ensaio.
-2. Comentários são convertidos em texto e usuário; presentes em nome, quantidade e moedas; curtidas em quantidade. `ContadorCombo` calcula apenas a diferença do `repeatCount` cumulativo para um combo.
-3. `server/src/pipeline.ts` interpreta o comentário, associa a pessoa ao último time escolhido, limita comentários que viram jogada a um por pessoa por segundo e encaminha a ação. Curtidas sem time são ignoradas; presente sem time aparece como aviso, sem agir no jogo.
-4. `server/src/ws.ts` transmite `{t:"acao", acao}` em JSON por WebSocket local. `game/src/core/rede.ts` recebe e emite o evento para `game/src/core/rotacao.ts`, que mostra o aviso e chama `onAcao` no minijogo ativo.
-5. No fim da rodada, `rotacao.ts` envia `{t:"resultado", resultado}`. O servidor valida o formato, registra pontos no `Placar` e retransmite um snapshot. Dois resultados recebidos com menos de 20 segundos entre si são tratados como duplicados; isso é uma janela temporal, não uma chave de rodada.
-
-**Dois presentes no mesmo milissegundo:** o pipeline processa as chamadas recebidas pelo processo Node.js em sequência; presentes não passam pelo limite de comentários. Ambos podem produzir ações. Para eventos de um mesmo combo, `ContadorCombo` usa a diferença do contador cumulativo. O código não oferece chave persistente para deduplicar reentregas arbitrárias após reinício nem ordenação global de eventos.
-
-## Onde fica o estado
-
-| Estado | Local | Persistência e limite |
-| --- | --- | --- |
-| Times, pontos do campeonato, ranking de presentes e número de rodadas | `Placar` em memória no servidor | Snapshot em `dados/estado.json`, agendado para 300 ms após mudança. Erro de gravação é registrado no log. |
-| Fase, cronômetro, jogo ativo e pontuação da rodada atual | `Rotacao` e cena do minijogo no navegador | Não há restauração da rodada após recarga da página. |
-| Último comentário por usuário para limite de jogadas | `Map` em memória no pipeline | Reinício zera o limite. |
-| Contagem dos combos de presentes | `Map` em memória no conector | Entrada expira após 60 s; reinício perde histórico. |
-| Clientes, licenças, sessões, códigos de login e eventos Stripe | Postgres do site | Esquema e restrições em `santi-hub/db/migracoes/`. |
-
-## Queda e reconexão
-
-- **TikTok → servidor:** em desconexão ou fim de live, o conector agenda nova tentativa com espera que dobra de 5 s até 60 s. O simulador continua disponível. Não há fila durável nem recuperação demonstrada dos eventos perdidos durante a queda.
-- **Servidor → tela:** o cliente WebSocket tenta reconectar após 2 s. O jogo continua rodando localmente. Na conexão, o servidor manda o snapshot do placar geral; ações perdidas não são reenviadas. Um resultado enviado enquanto o socket está fechado é perdido.
-- **Reinício do servidor:** `Placar` carrega `estado.json`, se legível. O estado da rodada no navegador não é sincronizado com esse arquivo.
-- **Recarga da tela:** inicia uma nova rotação local e recebe o placar geral. Não retoma a rodada anterior.
-
-## Evidência e lacunas
-
-O fluxo do simulador tem testes no servidor (`server/src/regras.test.ts`). O próprio `live-jogos/ARQUITETURA.md` declara que o conjunto ainda não foi testado numa live real. A captura de conteúdo da live depende de biblioteca não oficial; não se deve apresentar esta integração como aderente à regra de usar somente API oficial. Latência ponta a ponta, perda em reconexão e carga suportada: **[A MEDIR]**.
+Os testes do servidor cobrem combo, regras de comentário, pontos e pipeline com simulador (`server/src/regras.test.ts`). O repositório `live-jogos` declara que ainda não houve validação numa live real. O conector usa `tiktok-live-connector`, biblioteca não oficial; por isso essa coleta não pode ser apresentada como uso de API oficial. Latência ponta a ponta, perda em reconexão e carga suportada: **[A MEDIR]**.
