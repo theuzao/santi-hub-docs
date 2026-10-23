@@ -20,7 +20,8 @@ sequenceDiagram
   Site->>DB: transação: registra evento e cria/atualiza licença
   DB-->>Site: confirmação
   Site-->>Stripe: HTTP 200
-  Launcher-->>Site: GET /api/launcher/conta (contrato; cliente não criado)
+  Note over Launcher,Site: Contrato documentado. Launcher ainda não criado.
+  Launcher-->>Site: GET /api/launcher/conta
   Site-->>Launcher: acesso e ticket assinado, quando aplicável
 ```
 
