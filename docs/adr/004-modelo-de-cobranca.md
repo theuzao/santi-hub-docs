@@ -1,6 +1,6 @@
-# ADR 004 — Checkout hospedado e licença derivada de webhook
+# ADR 004: Checkout hospedado e licença derivada de webhook
 
-**Estado:** decisão observada no código. **Fonte:** `santi-hub/app/api/checkout/route.ts`, `app/api/stripe/webhook/route.ts`, `lib/licencas.ts`, `lib/conta.ts` no commit `97ee1f200461bc575f524df66ef363cc9c9e2e8d`.
+**Estado:** decisão observada no código. **Fonte:** `santi-hub/app/api/checkout/route.ts`, `app/api/stripe/webhook/route.ts`, `lib/licencas.ts`, `lib/conta.ts`.
 
 ## Contexto
 

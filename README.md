@@ -1,8 +1,20 @@
-# santi.hub — como o produto funciona
+# santi.hub
 
-**Site publicado: [santiestudio.com.br](https://santiestudio.com.br)** · [Ver planos](https://santiestudio.com.br/#planos) · [Arquitetura detalhada](docs/arquitetura.md)
+<div align="center">
+  <strong>Jogos interativos para lives do TikTok</strong><br>
+  O público participa com comentários, curtidas e presentes.<br><br>
+  <a href="https://santiestudio.com.br"><strong>Acessar o site</strong></a> ·
+  <a href="https://santiestudio.com.br/#jogos">Ver os jogos</a> ·
+  <a href="https://santiestudio.com.br/#planos">Ver os planos</a>
+</div>
 
-O **santi.hub** reúne planos, cobrança e licenças com jogos que o público controla durante uma live. Quem transmite coloca a tela do jogo no OBS ou LIVE Studio; quem assiste comenta, curte ou envia presentes para interferir na partida.
+<br>
+
+![Next.js](https://img.shields.io/badge/Next.js-000000?style=for-the-badge&logo=nextdotjs&logoColor=white)
+![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=typescript&logoColor=white)
+![Node.js](https://img.shields.io/badge/Node.js-339933?style=for-the-badge&logo=nodedotjs&logoColor=white)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-4169E1?style=for-the-badge&logo=postgresql&logoColor=white)
+![Stripe](https://img.shields.io/badge/Stripe-635BFF?style=for-the-badge&logo=stripe&logoColor=white)
 
 ## Arquitetura em um olhar
 
@@ -23,9 +35,7 @@ flowchart TB
   Banco -. launcher pendente .-> Servidor
 ```
 
-O conector de TikTok é não oficial e a integração com uma live real ainda não foi validada. A ligação pontilhada depende do launcher, que ainda não existe.
-
-**O caminho de uma jogada:**
+O caminho pontilhado depende do launcher, que ainda não foi criado. O conector de TikTok usa uma biblioteca não oficial e a integração com uma live real ainda não foi validada.
 
 ```mermaid
 flowchart TB
@@ -36,48 +46,76 @@ flowchart TB
   D -->|resultado da rodada| C
 ```
 
-## O produto em imagens
+[Abrir a arquitetura detalhada](docs/arquitetura.md)
 
-**Página inicial publicada.** Clique na captura para abrir o site.
+## Telas
 
-<a href="https://santiestudio.com.br"><img src="docs/imagens/site-inicial-2026-10-23.png" alt="Página inicial publicada do santi.hub, com prévia do jogo e links para jogos e planos" width="780"></a>
+**Abertura do site.** Captura da animação de loading publicada em 23/10/2026.
 
-**Planos mostrados no site em 23/10/2026.** Os preços podem mudar; confira os [planos atuais](https://santiestudio.com.br/#planos).
+<a href="https://santiestudio.com.br"><img src="docs/imagens/loading-2026-10-23.png" alt="Tela de loading do site Santi Estúdio" width="780"></a>
 
-<a href="https://santiestudio.com.br/#planos"><img src="docs/imagens/planos-2026-10-23.png" alt="Seção de planos do site publicada em 23 de outubro de 2026" width="780"></a>
+**Catálogo de jogos.** A página mostra Corrida como disponível e os demais cards com o estado exibido no site naquela data.
 
-**Tela da Pescaria no simulador.** É uma captura do jogo, não evidência de uma live real.
+<a href="https://santiestudio.com.br/#jogos"><img src="docs/imagens/jogos-2026-10-23.png" alt="Seção de jogos do site, com Corrida disponível e outros jogos em breve" width="780"></a>
 
-<img src="docs/imagens/pescaria-simulador.png" alt="Jogo Pescaria rodando no simulador com times, placar e instruções para o público" width="270">
+[Como as imagens foram obtidas](docs/imagens/ORIGEM.md)
 
-[Origem das imagens](docs/imagens/ORIGEM.md)
+## Índice
 
-## Como a pessoa usa
+- [Sobre o projeto](#sobre-o-projeto)
+- [Funcionalidades](#funcionalidades)
+- [Tecnologias](#tecnologias)
+- [Estado atual](#estado-atual)
+- [Documentação](#documentação)
+- [Autor e licença](#autor-e-licença)
 
-Para quem transmite, o fluxo começa na página de planos. O site envia a compra para a Stripe; um webhook confirmado grava a licença no Postgres, e a API calcula o acesso. **Esse acesso ainda não é aplicado ao jogo:** a API emite um ticket, mas o launcher Windows que o consumiria ainda não foi criado.
+## Sobre o projeto
 
-Durante a transmissão, o jogo alterna entre **Batata Quente, Domina o Mapa, Pescaria e Corrida**. Comentar o nome de um time já conta como jogada; curtidas e presentes ajudam o último time escolhido. O narrador pode avançar ou pausar. O resultado de cada rodada alimenta o placar geral, mostrado na tela capturada pelo OBS.
+O santi.hub oferece uma página de planos, checkout e conta para quem transmite. No jogo, o público escolhe um time comentando seu nome; curtidas e presentes ajudam o último time escolhido. O servidor interpreta esses eventos e envia ações por WebSocket à tela capturada pelo OBS ou LIVE Studio.
 
-## O que está neste repositório
+O site público anuncia a Corrida como disponível. O repositório privado dos jogos também contém minijogos e um simulador para testar o fluxo sem uma live. Uma tela marcada como “em breve” no site não é apresentada aqui como jogo já lançado.
 
-Este é um **repositório público só de documentação**. O código analisado permanece nos repositórios privados `santi-hub` (site, cobrança, autenticação e API) e `live-jogos` (servidor, simulador e tela). A análise usa, respectivamente, os commits `97ee1f200461bc575f524df66ef363cc9c9e2e8d` e `7e65efb42702b5918d499a85a58c9751de997948`.
+## Funcionalidades
 
-- [Arquitetura](docs/arquitetura.md): visão do sistema, contêineres, exemplo de evento, estados e reconexão.
-- [Modelo de dados](docs/modelo-de-dados.md): tabelas do site e dados da partida fora do banco.
-- [Fluxo de pagamento](docs/fluxo-pagamento.md): confirmação, licença, falha e reenvio do webhook.
-- [Decisões arquiteturais](docs/adr/): cinco ADRs ligados ao que foi observado no código.
+| Área | O que o código faz |
+| --- | --- |
+| Planos e checkout | O site calcula o preço no servidor e abre uma sessão Stripe Checkout. |
+| Conta e licença | O webhook assinado grava a licença; a API calcula o acesso disponível e pode emitir um ticket assinado. |
+| Interação | O servidor transforma comentários, curtidas e presentes em ações de jogo. O simulador percorre esse mesmo caminho. |
+| Tela da partida | O navegador recebe ações por WebSocket, atualiza o minijogo e envia o resultado da rodada ao servidor. |
+| Reconexão | O conector e o cliente WebSocket tentam restabelecer a conexão; ações perdidas durante a queda não são reproduzidas. |
 
-## Estado e limites
+## Tecnologias
 
-| Parte | Evidência disponível | Limite |
+| Parte | Tecnologia | Papel |
 | --- | --- | --- |
-| Site, checkout, autenticação e API de licenças | Implementados em `santi-hub`; página pública capturada em 23/10/2026 | Operação de pagamento real não verificada neste estudo |
-| Servidor e tela dos jogos | Código e testes do simulador em `live-jogos` | Live real não validada na documentação do projeto |
-| Controle de acesso ao jogo | API emite ticket assinado | Launcher não criado; servidor dos jogos não verifica licença |
-| Coleta de eventos TikTok | Conector no código dos jogos | Usa `tiktok-live-connector`, biblioteca **não oficial** |
+| Site e API | Next.js, React e TypeScript | Páginas, conta, checkout e webhook |
+| Dados da conta | PostgreSQL | Clientes, licenças, sessões e eventos Stripe |
+| Pagamento | Stripe | Checkout, assinatura e avisos de pagamento |
+| Servidor do jogo | Node.js e TypeScript | Interpretação dos eventos, placar e WebSocket |
+| Tela do jogo | Phaser e TypeScript | Rodadas, interface e ações visíveis na transmissão |
 
-O conector atual não atende ao requisito futuro do portfólio de coletar conteúdo de usuários apenas por API oficial. Não há métricas medidas de tráfego, receita, latência ou disponibilidade: **[A MEDIR]**.
+## Estado atual
 
-## Como conferir
+Este repositório é público e contém somente documentação e capturas do sistema. O código do site e o código dos jogos permanecem em repositórios privados separados.
 
-Os documentos citam caminhos dos dois repositórios privados e os commits usados na leitura. Este repositório não contém código executável, credenciais ou dados de clientes. Texto e diagramas estão sob [MIT](LICENSE).
+| Parte | Estado |
+| --- | --- |
+| Página pública | Acessível em [santiestudio.com.br](https://santiestudio.com.br) em 23/10/2026; teste de acesso: `curl -IL --max-time 15 https://santiestudio.com.br` |
+| Servidor e tela dos jogos | Testados com o simulador; live real não validada na documentação do projeto |
+| Launcher Windows | Ainda não criado |
+| Liberação do jogo por licença | Ainda não implementada de ponta a ponta |
+| Coleta de eventos TikTok | Conector atual usa `tiktok-live-connector`, biblioteca não oficial |
+
+Tráfego, receita, latência e disponibilidade: **[A MEDIR]**. As capturas mostram interfaces reais, mas não comprovam pagamento concluído nem uso numa live real.
+
+## Documentação
+
+- [Arquitetura](docs/arquitetura.md): componentes, caminho de um evento, estados e reconexão.
+- [Modelo de dados](docs/modelo-de-dados.md): tabelas do site e estado dos jogos fora do banco.
+- [Fluxo de pagamento](docs/fluxo-pagamento.md): checkout, webhook, licença e falhas.
+- [Decisões arquiteturais](docs/adr/): escolhas e consequências observadas no código.
+
+## Autor e licença
+
+[Matheus Guilherme](https://github.com/theuzao). A documentação está sob a [licença MIT](LICENSE).

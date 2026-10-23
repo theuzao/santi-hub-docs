@@ -1,6 +1,6 @@
-# ADR 002 — Estado do campeonato no servidor e rodada no navegador
+# ADR 002: Estado do campeonato no servidor e rodada no navegador
 
-**Estado:** decisão observada no código. **Fonte:** `live-jogos/server/src/estado/placar.ts`, `server/src/index.ts`, `game/src/core/rotacao.ts` no commit `7e65efb42702b5918d499a85a58c9751de997948`.
+**Estado:** decisão observada no código. **Fonte:** `live-jogos/server/src/estado/placar.ts`, `server/src/index.ts`, `game/src/core/rotacao.ts`.
 
 ## Contexto
 

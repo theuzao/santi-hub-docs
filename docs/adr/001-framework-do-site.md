@@ -1,6 +1,6 @@
-# ADR 001 — Next.js para site, conta e API
+# ADR 001: Next.js para site, conta e API
 
-**Estado:** decisão observada no código. **Fonte:** `santi-hub/package.json`, `app/`, `lib/` no commit `97ee1f200461bc575f524df66ef363cc9c9e2e8d`.
+**Estado:** decisão observada no código. **Fonte:** `santi-hub/package.json`, `app/`, `lib/`.
 
 ## Contexto
 

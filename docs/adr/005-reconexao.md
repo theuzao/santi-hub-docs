@@ -1,6 +1,6 @@
-# ADR 005 — Reconexão sem fila de reprodução
+# ADR 005: Reconexão sem fila de reprodução
 
-**Estado:** decisão observada no código. **Fonte:** `live-jogos/server/src/conector/tiktok.ts`, `server/src/ws.ts`, `game/src/core/rede.ts` no commit `7e65efb42702b5918d499a85a58c9751de997948`.
+**Estado:** decisão observada no código. **Fonte:** `live-jogos/server/src/conector/tiktok.ts`, `server/src/ws.ts`, `game/src/core/rede.ts`.
 
 ## Contexto
 

@@ -1,4 +1,4 @@
-# ADR 003 — Deduplicação por tipo de evento
+# ADR 003: Deduplicação por tipo de evento
 
 **Estado:** decisão observada no código. **Fonte:** `live-jogos/server/src/conector/combo.ts`, `server/src/index.ts`; `santi-hub/lib/licencas.ts`, `db/migracoes/001_licencas.sql` nos commits citados no README.
 

@@ -1,6 +1,6 @@
 # Modelo de dados
 
-Fonte: migrações `santi-hub/db/migracoes/001_licencas.sql` e `002_login.sql` no commit `97ee1f200461bc575f524df66ef363cc9c9e2e8d`; tipos e estado de `live-jogos/shared/protocolo.ts` e `server/src/estado/placar.ts` no commit `7e65efb42702b5918d499a85a58c9751de997948`.
+Fonte: migrações `santi-hub/db/migracoes/001_licencas.sql` e `002_login.sql`; tipos e estado de `live-jogos/shared/protocolo.ts` e `server/src/estado/placar.ts`.
 
 ## Relacionamentos persistidos no Postgres
 

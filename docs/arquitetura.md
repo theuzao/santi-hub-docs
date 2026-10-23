@@ -2,9 +2,9 @@
 
 O produto tem **um lado de conta e pagamento** e **um lado de jogo em tempo real**. O primeiro administra quem teria acesso; o segundo recebe interações da live e desenha a partida. O launcher que ligaria os dois lados ainda não foi criado. Os diagramas abaixo separam fluxo implementado de integração pendente.
 
-**Fonte da leitura:** `santi-hub@97ee1f200461bc575f524df66ef363cc9c9e2e8d` e `live-jogos@7e65efb42702b5918d499a85a58c9751de997948`, repositórios privados que o autor identificou como partes do projeto. Linha contínua indica caminho presente no código; linha pontilhada indica ligação ainda sem implementação ponta a ponta.
+**Fonte da leitura:** os repositórios privados `santi-hub` e `live-jogos`, identificados pelo autor como partes do projeto. Linha contínua indica caminho presente no código; linha pontilhada indica ligação ainda sem implementação ponta a ponta.
 
-## 1. Quem interage com o sistema — C4 nível 1
+## 1. Quem interage com o sistema: C4 nível 1
 
 ```mermaid
 flowchart TB
@@ -29,7 +29,7 @@ flowchart TB
 
 A linha TikTok → santi.hub existe no conector, mas o repositório de jogos declara que ainda não foi testada numa live real. O site publicado foi informado pelo autor; este estudo não mediu operação em produção.
 
-## 2. Onde cada parte roda — C4 nível 2
+## 2. Onde cada parte roda: C4 nível 2
 
 ```mermaid
 flowchart TB
@@ -62,10 +62,6 @@ Os vínculos pontilhados representam a integração prevista. A API do site emit
 ## 3. Um comentário que vira jogada
 
 Exemplo concreto: uma pessoa comenta **“Rabino”**. O simulador permite percorrer o mesmo pipeline sem entrar numa live.
-
-<img src="imagens/pescaria-simulador.png" alt="Captura da Pescaria no simulador, mostrando times, placar e instruções na tela" width="250">
-
-*Tela do jogo capturada no simulador. [Origem da imagem](imagens/ORIGEM.md).*
 
 ```mermaid
 sequenceDiagram
