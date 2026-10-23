@@ -77,37 +77,32 @@ flowchart TB
 
 A ligação pontilhada ainda não funciona de ponta a ponta. O launcher não existe. O conector de TikTok usa uma biblioteca não oficial, e o repositório dos jogos não registra validação numa live real.
 
-### Interação do público até a tela
-
-```mermaid
-flowchart TB
-  Evento[Comentário, curtida ou presente] --> Conector[Conector ou simulador]
-  Conector --> Regras[Regras e placar no servidor]
-  Regras -->|ação em JSON por WebSocket| Tela[Jogo no navegador]
-  Tela --> OBS[Tela capturada no OBS]
-  Tela -->|resultado da rodada| Regras
-```
-
-O servidor aplica as regras e envia a ação ao minijogo ativo. Quando a rodada termina, o navegador devolve o resultado e o servidor atualiza o placar geral.
-
 ### Do chat à partida
 
-O público participa escrevendo o nome de um time. O servidor identifica esse nome no comentário e decide se ele deve chegar ao jogo:
+Uma pessoa comenta **“Rabino”** durante a live. O servidor reconhece o time, envia a ação ao jogo e a mudança aparece na transmissão. O simulador permite percorrer o mesmo caminho sem entrar numa live.
 
 ```mermaid
-flowchart TB
-  Comentario["Pessoa comenta na live"] --> Conector["Conector recebe usuário e texto"]
-  Conector --> Nome{"Comentário cita um time?"}
-  Nome -->|não| Conversa["Continua como conversa no chat"]
-  Nome -->|sim| Limite{"Passou 1 s desde o último comentário aceito?"}
-  Limite -->|não| Repeticao["Repetição rápida é ignorada"]
-  Limite -->|sim| Time["Servidor registra ou mantém o time escolhido"]
-  Time --> WebSocket["Envia a ação por WebSocket"]
-  WebSocket --> Jogo["Jogo ativo reage e atualiza a rodada"]
-  Jogo --> Live["OBS ou LIVE Studio exibe a tela na live"]
+sequenceDiagram
+  autonumber
+  actor Pessoa as Pessoa no público
+  participant TikTok as Live TikTok ou simulador
+  participant Conector as Conector
+  participant Regras as Pipeline e placar
+  participant WS as Servidor WebSocket
+  participant Tela as Jogo no navegador
+  participant OBS as OBS
+
+  Pessoa->>TikTok: comenta "Rabino"
+  TikTok->>Conector: evento de comentário
+  Conector->>Regras: EventoLive {tipo, user, texto}
+  Regras->>Regras: interpreta time e aplica limite de 1 jogada por pessoa por segundo
+  Regras->>WS: Acao {tipo: entrarTime, time: rabino, user}
+  WS->>Tela: JSON {t: acao, acao} por WebSocket
+  Tela->>Tela: rotacao entrega a ação ao minijogo ativo
+  Tela-->>OBS: quadro atualizado da fonte de navegador
 ```
 
-Cada novo comentário válido gera uma ação, mesmo que a pessoa já pertença ao time. Curtidas e presentes seguem o último time que ela escolheu; antes dessa escolha, não afetam a partida. No simulador, os comentários percorrem as mesmas regras do servidor.
+Cada novo comentário válido gera uma ação, mesmo que a pessoa já pertença ao time. Comentários sem nome de time continuam como conversa. Curtidas e presentes seguem o último time escolhido; antes dessa escolha, não afetam a partida.
 
 ### Compra até a licença
 
