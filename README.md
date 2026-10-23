@@ -7,22 +7,28 @@ O **santi.hub** reúne planos, cobrança e licenças com jogos que o público co
 ## Arquitetura em um olhar
 
 ```mermaid
-flowchart LR
-  Pessoa[Pessoa que transmite] --> Site[Site santi.hub]
-  Site --> Stripe[Stripe Checkout]
-  Stripe -->|webhook| Site
-  Site --> Banco[(Postgres: licença)]
-  Banco -. launcher ainda não criado .-> Jogo[Jogo no navegador]
-  Publico[Público da live] --> TikTok[TikTok]
-  TikTok -->|conector não oficial; live real não validada| Servidor[Servidor local]
-  Servidor -->|WebSocket| Jogo
-  Jogo --> OBS[OBS ou LIVE Studio]
+flowchart TB
+  subgraph Conta[Compra e licença]
+    Pessoa[Pessoa que transmite] --> Site[Site santi.hub]
+    Site --> Stripe[Stripe Checkout]
+    Stripe -->|webhook| Site
+    Site --> Banco[(Postgres: licença)]
+  end
+  subgraph Partida[Jogo na live]
+    Publico[Público] --> TikTok[TikTok]
+    TikTok --> Servidor[Servidor local]
+    Servidor -->|WebSocket| Jogo[Jogo no navegador]
+    Jogo --> OBS[OBS ou LIVE Studio]
+  end
+  Banco -. launcher pendente .-> Servidor
 ```
+
+O conector de TikTok é não oficial e a integração com uma live real ainda não foi validada. A ligação pontilhada depende do launcher, que ainda não existe.
 
 **O caminho de uma jogada:**
 
 ```mermaid
-flowchart LR
+flowchart TB
   A[Comentário, curtida ou presente] --> B[Conector ou simulador]
   B --> C[Regras e placar no Node.js]
   C -->|JSON por WebSocket| D[Jogo no navegador]
