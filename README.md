@@ -1,28 +1,56 @@
 # santi.hub — como o produto funciona
 
-O **santi.hub** reúne uma página de planos, cobrança e licenças com jogos que o público controla durante uma live. Quem transmite coloca a tela do jogo no OBS ou LIVE Studio; quem assiste comenta o nome de um time, curte ou envia presentes; essas interações viram ações visíveis na partida.
+**Site publicado: [santiestudio.com.br](https://santiestudio.com.br)** · [Ver planos](https://santiestudio.com.br/#planos) · [Arquitetura detalhada](docs/arquitetura.md)
 
-O objetivo para quem transmite é transformar a audiência em participantes do jogo. Para quem assiste, a ação é simples: comentar o nome de um time já conta como jogada, e curtidas e presentes ajudam o último time escolhido. O narrador acompanha a rodada e pode avançar ou pausar o jogo.
+O **santi.hub** reúne planos, cobrança e licenças com jogos que o público controla durante uma live. Quem transmite coloca a tela do jogo no OBS ou LIVE Studio; quem assiste comenta, curte ou envia presentes para interferir na partida.
 
-Durante a transmissão, o jogo alterna entre **Batata Quente, Domina o Mapa, Pescaria e Corrida**. Cada rodada mostra as ações do público na tela; ao terminar, o resultado alimenta um placar geral da live. O vídeo transmitido mostra essa tela, enquanto o servidor local recebe as interações e mantém os times e o placar.
-
-## Dois percursos do produto
-
-| Compra e acesso | Partida na live |
-| --- | --- |
-| Pessoa escolhe plano no site → Stripe recebe o pagamento → webhook confirmado grava uma licença no Postgres → API informa o acesso disponível. | Live ou simulador produz um evento → servidor Node.js interpreta a interação → WebSocket entrega a ação → jogo no navegador muda a tela → resultado da rodada volta ao servidor. |
-
-**Esses percursos ainda não se encontram na execução:** a API já emite um ticket de licença, mas o launcher Windows que o consumiria ainda não foi criado. O servidor dos jogos analisado não consulta a licença. O site está publicado segundo o autor; o jogo foi validado com simulador, e a documentação do código ainda não registra teste numa live real.
+## Arquitetura em um olhar
 
 ```mermaid
-flowchart TB
-  A[Pessoa escolhe um plano] --> B[Site e Stripe]
-  B --> C[(Licença no Postgres)]
-  C -. ticket para launcher ainda não criado .-> D[Execução dos jogos]
-  E[Público interage na live] --> F[Servidor local dos jogos]
-  F -->|WebSocket| D
-  D --> G[Tela capturada pelo OBS]
+flowchart LR
+  Pessoa[Pessoa que transmite] --> Site[Site santi.hub]
+  Site --> Stripe[Stripe Checkout]
+  Stripe -->|webhook| Site
+  Site --> Banco[(Postgres: licença)]
+  Banco -. launcher ainda não criado .-> Jogo[Jogo no navegador]
+  Publico[Público da live] --> TikTok[TikTok]
+  TikTok -->|conector não oficial; live real não validada| Servidor[Servidor local]
+  Servidor -->|WebSocket| Jogo
+  Jogo --> OBS[OBS ou LIVE Studio]
 ```
+
+**O caminho de uma jogada:**
+
+```mermaid
+flowchart LR
+  A[Comentário, curtida ou presente] --> B[Conector ou simulador]
+  B --> C[Regras e placar no Node.js]
+  C -->|JSON por WebSocket| D[Jogo no navegador]
+  D --> E[Tela capturada no OBS]
+  D -->|resultado da rodada| C
+```
+
+## O produto em imagens
+
+**Página inicial publicada.** Clique na captura para abrir o site.
+
+<a href="https://santiestudio.com.br"><img src="docs/imagens/site-inicial-2026-10-23.png" alt="Página inicial publicada do santi.hub, com prévia do jogo e links para jogos e planos" width="780"></a>
+
+**Planos mostrados no site em 23/10/2026.** Os preços podem mudar; confira os [planos atuais](https://santiestudio.com.br/#planos).
+
+<a href="https://santiestudio.com.br/#planos"><img src="docs/imagens/planos-2026-10-23.png" alt="Seção de planos do site publicada em 23 de outubro de 2026" width="780"></a>
+
+**Tela da Pescaria no simulador.** É uma captura do jogo, não evidência de uma live real.
+
+<img src="docs/imagens/pescaria-simulador.png" alt="Jogo Pescaria rodando no simulador com times, placar e instruções para o público" width="270">
+
+[Origem das imagens](docs/imagens/ORIGEM.md)
+
+## Como a pessoa usa
+
+Para quem transmite, o fluxo começa na página de planos. O site envia a compra para a Stripe; um webhook confirmado grava a licença no Postgres, e a API calcula o acesso. **Esse acesso ainda não é aplicado ao jogo:** a API emite um ticket, mas o launcher Windows que o consumiria ainda não foi criado.
+
+Durante a transmissão, o jogo alterna entre **Batata Quente, Domina o Mapa, Pescaria e Corrida**. Comentar o nome de um time já conta como jogada; curtidas e presentes ajudam o último time escolhido. O narrador pode avançar ou pausar. O resultado de cada rodada alimenta o placar geral, mostrado na tela capturada pelo OBS.
 
 ## O que está neste repositório
 
@@ -37,7 +65,7 @@ Este é um **repositório público só de documentação**. O código analisado 
 
 | Parte | Evidência disponível | Limite |
 | --- | --- | --- |
-| Site, checkout, autenticação e API de licenças | Implementados em `santi-hub`; publicação informada pelo autor | Operação de pagamento real não verificada neste estudo |
+| Site, checkout, autenticação e API de licenças | Implementados em `santi-hub`; página pública capturada em 23/10/2026 | Operação de pagamento real não verificada neste estudo |
 | Servidor e tela dos jogos | Código e testes do simulador em `live-jogos` | Live real não validada na documentação do projeto |
 | Controle de acesso ao jogo | API emite ticket assinado | Launcher não criado; servidor dos jogos não verifica licença |
 | Coleta de eventos TikTok | Conector no código dos jogos | Usa `tiktok-live-connector`, biblioteca **não oficial** |

@@ -63,6 +63,10 @@ Os vínculos pontilhados representam a integração prevista. A API do site emit
 
 Exemplo concreto: uma pessoa comenta **“Rabino”**. O simulador permite percorrer o mesmo pipeline sem entrar numa live.
 
+<img src="imagens/pescaria-simulador.png" alt="Captura da Pescaria no simulador, mostrando times, placar e instruções na tela" width="250">
+
+*Tela do jogo capturada no simulador. [Origem da imagem](imagens/ORIGEM.md).*
+
 ```mermaid
 sequenceDiagram
   autonumber

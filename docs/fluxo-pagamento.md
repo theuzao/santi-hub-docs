@@ -2,6 +2,12 @@
 
 Fonte: `santi-hub/app/api/checkout/route.ts`, `app/api/stripe/webhook/route.ts`, `lib/licencas.ts`, `lib/conta.ts`, `lib/api-launcher.ts`, `lib/ticket.ts` e migrações no commit `97ee1f200461bc575f524df66ef363cc9c9e2e8d`.
 
+O fluxo começa na [seção de planos do site](https://santiestudio.com.br/#planos). A imagem registra o que estava publicado em 23/10/2026; os preços atuais devem ser conferidos no site.
+
+<a href="https://santiestudio.com.br/#planos"><img src="imagens/planos-2026-10-23.png" alt="Seção de planos exibida pelo site em 23 de outubro de 2026" width="780"></a>
+
+[Origem da captura](imagens/ORIGEM.md)
+
 ```mermaid
 sequenceDiagram
   actor Cliente
