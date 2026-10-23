@@ -14,13 +14,13 @@ Este repositório público apresenta o santi.hub por meio de **capturas e docume
 
 ## Telas do produto
 
-Antes de mostrar os jogos, o site apresenta a marca Santi Estúdio na abertura. A tela seguinte mostra quais experiências o visitante pode conhecer.
+A Santi oferece um hub de jogos para lives do TikTok. A proposta é transformar comentários, curtidas e presentes em ações dentro dos jogos, automatizando parte da transmissão e oferecendo entretenimento interativo ao público. Assim, quem transmite pode ter mais liberdade para se afastar do computador, e quem prefere um formato automatizado encontra uma maneira de manter a audiência participando. O [TikTok LIVE vem crescendo](https://newsroom.tiktok.com/celebrando-a-comunidade-e-a-criatividade-tiktok-live-community-fest-2025?lang=pt-BR), abrindo espaço para esse nicho de experiências interativas.
 
 <a href="https://santiestudio.com.br"><img src="docs/imagens/loading-branco-2026-10-23.png" alt="Tela de loading do site com a marca SANTI ESTÚDIO em branco" width="780"></a>
 
-A Corrida tem uma demonstração disponível. Cabo de Guerra e Pescaria aparecem como próximos lançamentos. A seção separa o que já pode ser visto do que está planejado, antes de apresentar os planos.
+Depois da abertura, o site apresenta o catálogo. Essa tela mostra como a proposta se traduz em experiências para a live: o visitante pode conhecer o que já está disponível para demonstração e ver o que está em desenvolvimento.
 
-<a href="https://santiestudio.com.br/#jogos"><img src="docs/imagens/jogos-2026-10-23.png" alt="Seção de jogos do site com Corrida disponível e outros jogos em breve" width="780"></a>
+<a href="https://santiestudio.com.br/#jogos"><img src="docs/imagens/jogos-2026-10-23.png" alt="Catálogo do site com um jogo disponível para demonstração e outros em breve" width="780"></a>
 
 ![Next.js](https://img.shields.io/badge/Next.js-000000?style=for-the-badge&logo=nextdotjs&logoColor=white)
 ![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=typescript&logoColor=white)
